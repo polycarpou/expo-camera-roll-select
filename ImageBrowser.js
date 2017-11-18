@@ -21,15 +21,19 @@ export default class ImageBrowser extends React.Component {
     super(props);
     this.state = {
       photos: [],
-      index: null
+      index: null,
+      selected: []
     }
   }
 
   setIndex = (index) => {
-    if (index === this.state.index) {
-      index = null
+    let { selected } = this.state;
+    if (selected.includes(index)) {
+      selected = selected.filter(item => item !== index )
+    } else {
+      selected.push(index)
     }
-    this.setState({ index })
+    this.setState({ selected })
   }
 
   getPhotos = () => {
@@ -44,42 +48,56 @@ export default class ImageBrowser extends React.Component {
     this.getPhotos()
   }
 
-  render() {
-    const { navigate } = this.props.navigation
+  renderHeader() {
+    const { goBack } = this.props.navigation
     return (
-      <View style={styles.container}>
+      <View>
         <Text>This is the Image Browser</Text>
         <Text>Changes you make will automatically reload.</Text>
         <Text>Shake your phone to open the developer menu.</Text>
         <Button
           title="Choose"
-          onPress={() => {navigate('Start')}}
+          onPress={() => goBack()}
         />
+      </View>
+    )
+  }
+  renderImages() {
+    return(
+      <ScrollView contentContainerStyle={styles.scrollView}>
+        {
+          this.state.photos.map((p, i) => {
+            return ( this.renderImage(p,i) )
+          })
+        }
+      </ScrollView>
+    )
+  }
 
-        <ScrollView
-          contentContainerStyle={styles.scrollView}
-        >
-          {
-            this.state.photos.map((p, i) => {
-              return (
-                <TouchableHighlight
-                  style={{opacity: i === this.state.index ? 0.5 : 1}}
-                  key={i}
-                  underlayColor='transparent'
-                  onPress={() => this.setIndex(i)}
-                >
-                <Image
-                style={{
-                  width: width/4,
-                  height: width/4
-                }}
-                source={{uri: p.node.image.uri}}
-                />
-                </TouchableHighlight>
-              )
-            })
-          }
-        </ScrollView>
+  renderImage(p, i) {
+    return (
+      <TouchableHighlight
+        style={{opacity: this.state.selected.includes(i) ? 0.5 : 1}}
+        key={i}
+        underlayColor='transparent'
+        onPress={() => this.setIndex(i)}
+      >
+      <Image
+        style={{
+          width: width/4,
+          height: width/4
+        }}
+        source={{uri: p.node.image.uri}}
+      />
+      </TouchableHighlight>
+    )
+  }
+
+  render() {
+    return (
+      <View style={styles.container}>
+        {this.renderHeader()}
+        {this.renderImages()}
       </View>
     );
   }
@@ -91,19 +109,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center'
   },
-  modalContainer: {
-    paddingTop: 20,
-    flex: 1
-  },
   scrollView: {
     flexWrap: 'wrap',
     flexDirection: 'row'
   },
-  shareButton: {
-    position: 'absolute',
-    width,
-    padding: 10,
-    bottom: 0,
-    left: 0
-  }
 })
