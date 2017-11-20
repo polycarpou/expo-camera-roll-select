@@ -21,7 +21,6 @@ export default class ImageBrowser extends React.Component {
     super(props);
     this.state = {
       photos: [],
-      index: null,
       selected: []
     }
   }
@@ -38,10 +37,13 @@ export default class ImageBrowser extends React.Component {
 
   getPhotos = () => {
     CameraRoll.getPhotos({
-      first: 20,
+      first: 100,
       assetType: 'All'
     })
-    .then(r => this.setState({ photos: r.edges }))
+    .then(this.processPhotos)
+  }
+  processPhotos = (r) => {
+    this.setState({ photos: r.edges })
   }
 
   componentDidMount() {
@@ -63,10 +65,11 @@ export default class ImageBrowser extends React.Component {
     )
   }
   renderImages() {
+    let { photos } =  this.state;
     return(
       <ScrollView contentContainerStyle={styles.scrollView}>
         {
-          this.state.photos.map((p, i) => {
+          photos.map((p, i) => {
             return ( this.renderImage(p,i) )
           })
         }
