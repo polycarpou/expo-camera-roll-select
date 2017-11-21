@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, View, Button} from 'react-native';
+import { StyleSheet, Text, View, Button, ScrollView,Image} from 'react-native';
 import ImageBrowser from './ImageBrowser';
 
 export default class App extends React.Component {
@@ -18,6 +18,15 @@ export default class App extends React.Component {
     })
   }
 
+  renderImage(item, i) {
+    return(
+      <Image
+        style={{height: 100, width: 100}}
+        source={{uri: item.node.image.uri}}
+        key={i}
+      />
+    )
+  }
   render() {
     if (this.state.imageBrowserOpen) {
       return(<ImageBrowser callback={this.imageBrowserCallback}/>);
@@ -30,7 +39,9 @@ export default class App extends React.Component {
         />
         <Text>This is an example of a</Text>
         <Text>multi image selector using expo</Text>
-        <Text>{JSON.stringify(this.state.photos)}</Text>
+        <ScrollView>
+          {this.state.photos.map((item,i) => this.renderImage(item,i))}
+        </ScrollView>
       </View>
     );
   }
@@ -39,6 +50,7 @@ export default class App extends React.Component {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    marginTop: 30,
     backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
