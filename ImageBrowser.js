@@ -60,6 +60,11 @@ export default class ImageBrowser extends React.Component {
     this.getPhotos()
   }
 
+  getItemLayout = (data,index) => {
+    let length = width/4;
+    return { length, offset: length * index, index }
+  }
+
   renderHeader = () => {
     return (
       <View style={styles.header}>
@@ -77,17 +82,20 @@ export default class ImageBrowser extends React.Component {
       <FlatList
         data={photos}
         numColumns={4}
-        extraData={this.state.selected}
-        renderItem={(input) => this.renderImage(input)}
+        renderItem={this.renderImage}
         keyExtractor={(_,index) => index}
+        extraData={this.state.selected}
         onEndReached={()=> {this.getPhotos()}}
         onEndReachedThreshold={0.5}
+        ListEmptyComponent={<Text>Loading...</Text>}
+        initialNumToRender={24}
+        getItemLayout={this.getItemLayout}
       >
       </FlatList>
     )
   }
 
-  renderImage(input) {
+  renderImage = (input) => {
     let { item, index } = input;
     if (!item.node) return;
     return (
