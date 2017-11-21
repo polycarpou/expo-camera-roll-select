@@ -4,92 +4,107 @@ import {
   Text,
   View,
   CameraRoll,
-  ScrollView,
+  FlatList,
   Dimensions,
-  TouchableHighlight,
-  Image,
   Button
 } from 'react-native';
+import ImageTile from './ImageTile';
 const { width } = Dimensions.get('window')
 
 export default class ImageBrowser extends React.Component {
-  static navigationOptions = {
-    title: 'Camera Roll Images'
-  }
-
   constructor(props) {
     super(props);
     this.state = {
       photos: [],
-      index: null,
-      selected: []
+      selected: {},
+      after: null,
+      has_next_page: true
     }
   }
 
   setIndex = (index) => {
-    let { selected } = this.state;
-    if (selected.includes(index)) {
-      selected = selected.filter(item => item !== index )
+    let newSelected = {...this.state.selected};
+    if (newSelected[index]) {
+      delete newSelected[index];
     } else {
-      selected.push(index)
+      newSelected = {...newSelected, [index]: true}
     }
-    this.setState({ selected })
+    if (!newSelected) newSelected = {}
+    this.setState({ selected: newSelected })
   }
 
   getPhotos = () => {
-    CameraRoll.getPhotos({
-      first: 20,
-      assetType: 'All'
-    })
-    .then(r => this.setState({ photos: r.edges }))
+    let params = { first: 50, assetType: 'All' };
+    if (this.state.after) params.after = this.state.after
+    if (!this.state.has_next_page) return
+    CameraRoll
+      .getPhotos(params)
+      .then(this.processPhotos)
   }
 
-  componentDidMount() {
-    this.getPhotos()
+  processPhotos = (r) => {
+    if (this.state.after === r.page_info.end_cursor) return;
+    let newState = {
+      photos: [...this.state.photos, ...r.edges],
+      after: r.page_info.end_cursor,
+      has_next_page: r.page_info.has_next_page
+    };
+    this.setState(newState)
   }
 
-  renderHeader() {
-    const { goBack } = this.props.navigation
+  getItemLayout = (data,index) => {
+    let length = width/4;
+    return { length, offset: length * index, index }
+  }
+
+  prepareCallback(cancelled) {
+    let { selected, photos } = this.state;
+    let selectedPhotos = photos.filter((item, index) => {
+      return(selected[index])
+    });
+    if (cancelled) return(this.props.callback())
+    this.props.callback(selectedPhotos)
+  }
+
+  renderHeader = () => {
     return (
-      <View>
-        <Text>This is the Image Browser</Text>
-        <Text>Changes you make will automatically reload.</Text>
-        <Text>Shake your phone to open the developer menu.</Text>
+      <View style={styles.header}>
+        <Button
+          title="Exit"
+          onPress={() => this.prepareCallback(true)}
+        />
+        <Text>{Object.keys(this.state.selected).length} Selected</Text>
         <Button
           title="Choose"
-          onPress={() => goBack()}
+          onPress={() => this.prepareCallback()}
         />
       </View>
     )
   }
-  renderImages() {
+  renderImageTile = ({item, index}) => {
+    let selected = this.state.selected[index] ? true : false
     return(
-      <ScrollView contentContainerStyle={styles.scrollView}>
-        {
-          this.state.photos.map((p, i) => {
-            return ( this.renderImage(p,i) )
-          })
-        }
-      </ScrollView>
+      <ImageTile
+        item={item}
+        index={index}
+        selected={selected}
+        setIndex={this.setIndex}
+      />
     )
   }
-
-  renderImage(p, i) {
-    return (
-      <TouchableHighlight
-        style={{opacity: this.state.selected.includes(i) ? 0.5 : 1}}
-        key={i}
-        underlayColor='transparent'
-        onPress={() => this.setIndex(i)}
-      >
-      <Image
-        style={{
-          width: width/4,
-          height: width/4
-        }}
-        source={{uri: p.node.image.uri}}
+  renderImages() {
+    return(
+      <FlatList
+        data={this.state.photos}
+        numColumns={4}
+        renderItem={this.renderImageTile}
+        keyExtractor={(_,index) => index}
+        onEndReached={()=> {this.getPhotos()}}
+        onEndReachedThreshold={0.5}
+        ListEmptyComponent={<Text>Loading...</Text>}
+        initialNumToRender={24}
+        getItemLayout={this.getItemLayout}
       />
-      </TouchableHighlight>
     )
   }
 
@@ -106,11 +121,14 @@ export default class ImageBrowser extends React.Component {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center'
   },
-  scrollView: {
-    flexWrap: 'wrap',
-    flexDirection: 'row'
+  header: {
+    height: 40,
+    width: width,
+    justifyContent: 'space-between',
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 10,
+    marginTop: 20
   },
 })
