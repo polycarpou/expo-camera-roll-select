@@ -10,6 +10,7 @@ import {
   Image,
   Button
 } from 'react-native';
+import ImageTile from './ImageTile';
 const { width } = Dimensions.get('window')
 
 export default class ImageBrowser extends React.Component {
@@ -76,39 +77,30 @@ export default class ImageBrowser extends React.Component {
       </View>
     )
   }
+  renderImageTile = ({item, index}) => {
+    let selected = this.state.selected.includes(index) ? true : false
+    return(
+      <ImageTile
+        item={item}
+        index={index}
+        selected={selected}
+        setIndex={this.setIndex}
+      />
+    )
+  }
   renderImages() {
-    let { photos, selected } =  this.state;
     return(
       <FlatList
-        data={photos}
+        data={this.state.photos}
         numColumns={4}
-        renderItem={this.renderImage}
+        renderItem={this.renderImageTile}
         keyExtractor={(_,index) => index}
-        extraData={this.state.selected}
         onEndReached={()=> {this.getPhotos()}}
         onEndReachedThreshold={0.5}
         ListEmptyComponent={<Text>Loading...</Text>}
         initialNumToRender={24}
         getItemLayout={this.getItemLayout}
-      >
-      </FlatList>
-    )
-  }
-
-  renderImage = (input) => {
-    let { item, index } = input;
-    if (!item.node) return;
-    return (
-      <TouchableHighlight
-        style={{opacity: this.state.selected.includes(index) ? 0.5 : 1}}
-        underlayColor='transparent'
-        onPress={() => this.setIndex(index)}
-      >
-        <Image
-          style={{width: width/4, height: width/4}}
-          source={{uri: item.node.image.uri}}
-        />
-      </TouchableHighlight>
+      />
     )
   }
 
@@ -125,8 +117,6 @@ export default class ImageBrowser extends React.Component {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center'
   },
   header: {
     height: 40,

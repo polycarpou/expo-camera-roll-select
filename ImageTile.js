@@ -12,14 +12,14 @@ import {
 } from 'react-native';
 const { width } = Dimensions.get('window')
 class ImageTile extends React.PureComponent {
-  render(input) {
-    let { item, index } = this.props.input;
+  render() {
+    let { item, index, selected, setIndex } = this.props;
     if (!item.node) return;
     return (
       <TouchableHighlight
-        style={{opacity: this.state.selected.includes(index) ? 0.5 : 1}}
+        style={{opacity: selected ? 0.5 : 1}}
         underlayColor='transparent'
-        onPress={() => this.setIndex(index)}
+        onPress={() => setIndex(index)}
       >
         <Image
           style={{width: width/4, height: width/4}}
