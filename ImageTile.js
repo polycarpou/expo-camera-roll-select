@@ -3,14 +3,12 @@ import {
   StyleSheet,
   Text,
   View,
-  CameraRoll,
-  FlatList,
   Dimensions,
-  TouchableHighlight,
   Image,
-  Button
+  TouchableHighlight,
 } from 'react-native';
 const { width } = Dimensions.get('window')
+
 class ImageTile extends React.PureComponent {
   render() {
     let { item, index, selected, setIndex } = this.props;

@@ -6,8 +6,6 @@ import {
   CameraRoll,
   FlatList,
   Dimensions,
-  TouchableHighlight,
-  Image,
   Button
 } from 'react-native';
 import ImageTile from './ImageTile';
@@ -22,7 +20,7 @@ export default class ImageBrowser extends React.Component {
     super(props);
     this.state = {
       photos: [],
-      selected: [],
+      selected: {},
       after: null,
       has_next_page: true
     }
@@ -30,12 +28,13 @@ export default class ImageBrowser extends React.Component {
 
   setIndex = (index) => {
     let { selected } = this.state;
-    let newSelected;
-    if (selected.includes(index)) {
-      newSelected = selected.filter(item => item !== index )
+    let newSelected = {...selected};
+    if (selected[index]) {
+      delete newSelected[index];
     } else {
-      newSelected = [...selected, index]
+      newSelected = {...selected, [index]: true}
     }
+    if (!newSelected) newSelected = {}
     this.setState({ selected: newSelected })
   }
 
@@ -47,6 +46,7 @@ export default class ImageBrowser extends React.Component {
       .getPhotos(params)
       .then(this.processPhotos)
   }
+
   processPhotos = (r) => {
     if (this.state.after === r.page_info.end_cursor) return;
     let newState = {
@@ -69,7 +69,7 @@ export default class ImageBrowser extends React.Component {
   renderHeader = () => {
     return (
       <View style={styles.header}>
-        <Text>{this.state.selected.length} Selected</Text>
+        <Text>{Object.keys(this.state.selected).length} Selected</Text>
         <Button
           title="Choose"
           onPress={() => this.props.navigation.goBack()}
@@ -78,7 +78,7 @@ export default class ImageBrowser extends React.Component {
     )
   }
   renderImageTile = ({item, index}) => {
-    let selected = this.state.selected.includes(index) ? true : false
+    let selected = this.state.selected[index] ? true : false
     return(
       <ImageTile
         item={item}
