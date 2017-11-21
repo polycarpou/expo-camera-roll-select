@@ -12,10 +12,6 @@ import ImageTile from './ImageTile';
 const { width } = Dimensions.get('window')
 
 export default class ImageBrowser extends React.Component {
-  static navigationOptions = {
-    title: 'Camera Roll Images'
-  }
-
   constructor(props) {
     super(props);
     this.state = {
@@ -72,7 +68,7 @@ export default class ImageBrowser extends React.Component {
         <Text>{Object.keys(this.state.selected).length} Selected</Text>
         <Button
           title="Choose"
-          onPress={() => this.props.navigation.goBack()}
+          onPress={() => this.props.callback()}
         />
       </View>
     )
@@ -124,6 +120,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 10
+    padding: 10,
+    marginTop: 20
   },
 })
