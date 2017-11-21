@@ -4,7 +4,6 @@ import {
   Text,
   View,
   CameraRoll,
-  ScrollView,
   FlatList,
   Dimensions,
   TouchableHighlight,
@@ -22,7 +21,9 @@ export default class ImageBrowser extends React.Component {
     super(props);
     this.state = {
       photos: [],
-      selected: []
+      selected: [],
+      after: null,
+      has_next_page: true
     }
   }
 
@@ -38,29 +39,34 @@ export default class ImageBrowser extends React.Component {
   }
 
   getPhotos = () => {
-    CameraRoll.getPhotos({
-      first: 50,
-      assetType: 'All'
-    })
-    .then(this.processPhotos)
+    let params = { first: 50, assetType: 'All' };
+    if (this.state.after) params.after = this.state.after
+    if (!this.state.has_next_page) return
+    CameraRoll
+      .getPhotos(params)
+      .then(this.processPhotos)
   }
   processPhotos = (r) => {
-    this.setState({ photos: r.edges })
+    if (this.state.after === r.page_info.end_cursor) return;
+    let newState = {
+      photos: [...this.state.photos, ...r.edges],
+      after: r.page_info.end_cursor,
+      has_next_page: r.page_info.has_next_page
+    };
+    this.setState(newState)
   }
 
   componentDidMount() {
     this.getPhotos()
   }
 
-  renderHeader() {
-    const { goBack } = this.props.navigation
+  renderHeader = () => {
     return (
-      <View>
-        <Text>{this.state.selected}</Text>
+      <View style={styles.header}>
         <Text>{this.state.selected.length} Selected</Text>
         <Button
           title="Choose"
-          onPress={() => goBack()}
+          onPress={() => this.props.navigation.goBack()}
         />
       </View>
     )
@@ -71,9 +77,11 @@ export default class ImageBrowser extends React.Component {
       <FlatList
         data={photos}
         numColumns={4}
-        extraData={selected}
+        extraData={this.state.selected}
         renderItem={(input) => this.renderImage(input)}
         keyExtractor={(_,index) => index}
+        onEndReached={()=> {this.getPhotos()}}
+        onEndReachedThreshold={0.5}
       >
       </FlatList>
     )
@@ -81,6 +89,7 @@ export default class ImageBrowser extends React.Component {
 
   renderImage(input) {
     let { item, index } = input;
+    if (!item.node) return;
     return (
       <TouchableHighlight
         style={{opacity: this.state.selected.includes(index) ? 0.5 : 1}}
@@ -111,8 +120,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center'
   },
-  scrollView: {
-    flexWrap: 'wrap',
-    flexDirection: 'row'
+  header: {
+    height: 40,
+    width: width,
+    justifyContent: 'space-between',
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 10
   },
 })
