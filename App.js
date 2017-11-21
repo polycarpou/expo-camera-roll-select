@@ -6,12 +6,16 @@ export default class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      imageBrowserOpen: false
+      imageBrowserOpen: false,
+      photos: []
     }
   }
   imageBrowserCallback = (callback) => {
     console.log(callback)
-    this.setState({imageBrowserOpen: false})
+    this.setState({
+      imageBrowserOpen: false,
+      photos: callback
+    })
   }
 
   render() {
@@ -24,8 +28,9 @@ export default class App extends React.Component {
           title="Choose Images"
           onPress={() => this.setState({imageBrowserOpen: true})}
         />
-        <Text>This is an example of how to build</Text>
-        <Text> a multi image selector using expo</Text>
+        <Text>This is an example of a</Text>
+        <Text>multi image selector using expo</Text>
+        <Text>{JSON.stringify(this.state.photos)}</Text>
       </View>
     );
   }

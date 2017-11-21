@@ -23,12 +23,11 @@ export default class ImageBrowser extends React.Component {
   }
 
   setIndex = (index) => {
-    let { selected } = this.state;
-    let newSelected = {...selected};
-    if (selected[index]) {
+    let newSelected = {...this.state.selected};
+    if (newSelected[index]) {
       delete newSelected[index];
     } else {
-      newSelected = {...selected, [index]: true}
+      newSelected = {...newSelected, [index]: true}
     }
     if (!newSelected) newSelected = {}
     this.setState({ selected: newSelected })
@@ -53,22 +52,31 @@ export default class ImageBrowser extends React.Component {
     this.setState(newState)
   }
 
-  componentDidMount() {
-    this.getPhotos()
-  }
-
   getItemLayout = (data,index) => {
     let length = width/4;
     return { length, offset: length * index, index }
   }
 
+  prepareCallback(cancelled) {
+    let { selected, photos } = this.state;
+    let selectedPhotos = photos.filter((item, index) => {
+      return(selected[index])
+    });
+    if (cancelled) return(this.props.callback())
+    this.props.callback(selectedPhotos)
+  }
+
   renderHeader = () => {
     return (
       <View style={styles.header}>
+        <Button
+          title="Exit"
+          onPress={() => this.prepareCallback(true)}
+        />
         <Text>{Object.keys(this.state.selected).length} Selected</Text>
         <Button
           title="Choose"
-          onPress={() => this.props.callback()}
+          onPress={() => this.prepareCallback()}
         />
       </View>
     )
