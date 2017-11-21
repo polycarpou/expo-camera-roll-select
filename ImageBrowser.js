@@ -5,6 +5,7 @@ import {
   View,
   CameraRoll,
   ScrollView,
+  FlatList,
   Dimensions,
   TouchableHighlight,
   Image,
@@ -27,17 +28,18 @@ export default class ImageBrowser extends React.Component {
 
   setIndex = (index) => {
     let { selected } = this.state;
+    let newSelected;
     if (selected.includes(index)) {
-      selected = selected.filter(item => item !== index )
+      newSelected = selected.filter(item => item !== index )
     } else {
-      selected.push(index)
+      newSelected = [...selected, index]
     }
-    this.setState({ selected })
+    this.setState({ selected: newSelected })
   }
 
   getPhotos = () => {
     CameraRoll.getPhotos({
-      first: 100,
+      first: 50,
       assetType: 'All'
     })
     .then(this.processPhotos)
@@ -54,9 +56,8 @@ export default class ImageBrowser extends React.Component {
     const { goBack } = this.props.navigation
     return (
       <View>
-        <Text>This is the Image Browser</Text>
-        <Text>Changes you make will automatically reload.</Text>
-        <Text>Shake your phone to open the developer menu.</Text>
+        <Text>{this.state.selected}</Text>
+        <Text>{this.state.selected.length} Selected</Text>
         <Button
           title="Choose"
           onPress={() => goBack()}
@@ -65,33 +66,31 @@ export default class ImageBrowser extends React.Component {
     )
   }
   renderImages() {
-    let { photos } =  this.state;
+    let { photos, selected } =  this.state;
     return(
-      <ScrollView contentContainerStyle={styles.scrollView}>
-        {
-          photos.map((p, i) => {
-            return ( this.renderImage(p,i) )
-          })
-        }
-      </ScrollView>
+      <FlatList
+        data={photos}
+        numColumns={4}
+        extraData={selected}
+        renderItem={(input) => this.renderImage(input)}
+        keyExtractor={(_,index) => index}
+      >
+      </FlatList>
     )
   }
 
-  renderImage(p, i) {
+  renderImage(input) {
+    let { item, index } = input;
     return (
       <TouchableHighlight
-        style={{opacity: this.state.selected.includes(i) ? 0.5 : 1}}
-        key={i}
+        style={{opacity: this.state.selected.includes(index) ? 0.5 : 1}}
         underlayColor='transparent'
-        onPress={() => this.setIndex(i)}
+        onPress={() => this.setIndex(index)}
       >
-      <Image
-        style={{
-          width: width/4,
-          height: width/4
-        }}
-        source={{uri: p.node.image.uri}}
-      />
+        <Image
+          style={{width: width/4, height: width/4}}
+          source={{uri: item.node.image.uri}}
+        />
       </TouchableHighlight>
     )
   }
