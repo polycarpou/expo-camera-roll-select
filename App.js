@@ -22,7 +22,7 @@ export default class App extends React.Component {
     return(
       <Image
         style={{height: 100, width: 100}}
-        source={{uri: item.node.image.uri}}
+        source={{uri: item}}
         key={i}
       />
     )
