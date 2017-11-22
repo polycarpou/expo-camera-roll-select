@@ -8,6 +8,7 @@ import {
   Dimensions,
   Button
 } from 'react-native';
+import { FileSystem } from 'expo';
 import ImageTile from './ImageTile';
 const { width } = Dimensions.get('window')
 
@@ -44,12 +45,12 @@ export default class ImageBrowser extends React.Component {
 
   processPhotos = (r) => {
     if (this.state.after === r.page_info.end_cursor) return;
-    let newState = {
-      photos: [...this.state.photos, ...r.edges],
+    let uris = r.edges.map(i=> i.node).map(i=> i.image).map(i=>i.uri)
+    this.setState({
+      photos: [...this.state.photos, ...uris],
       after: r.page_info.end_cursor,
       has_next_page: r.page_info.has_next_page
-    };
-    this.setState(newState)
+    });
   }
 
   getItemLayout = (data,index) => {
@@ -57,13 +58,21 @@ export default class ImageBrowser extends React.Component {
     return { length, offset: length * index, index }
   }
 
-  prepareCallback(cancelled) {
+  prepareCallback() {
     let { selected, photos } = this.state;
     let selectedPhotos = photos.filter((item, index) => {
       return(selected[index])
     });
-    if (cancelled) return(this.props.callback())
-    this.props.callback(selectedPhotos)
+    let files = selectedPhotos
+      .map(i => FileSystem.getInfoAsync(i, {md5: true}))
+    let callbackResult = Promise
+      .all(files)
+      .then(imageData=> {
+        return imageData.map((data, i) => {
+          return {file: selectedPhotos[i], ...data}
+        })
+      })
+    this.props.callback(callbackResult)
   }
 
   renderHeader = () => {
@@ -71,7 +80,7 @@ export default class ImageBrowser extends React.Component {
       <View style={styles.header}>
         <Button
           title="Exit"
-          onPress={() => this.prepareCallback(true)}
+          onPress={() => this.props.callback(Promise.resolve([]))}
         />
         <Text>{Object.keys(this.state.selected).length} Selected</Text>
         <Button
