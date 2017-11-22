@@ -11,18 +11,20 @@ export default class App extends React.Component {
     }
   }
   imageBrowserCallback = (callback) => {
-    console.log(callback)
-    this.setState({
-      imageBrowserOpen: false,
-      photos: callback
-    })
+    callback.then((photos) => {
+      console.log(photos)
+      this.setState({
+        imageBrowserOpen: false,
+        photos
+      })
+    }).catch((e) => console.log(e))
   }
 
   renderImage(item, i) {
     return(
       <Image
         style={{height: 100, width: 100}}
-        source={{uri: item}}
+        source={{uri: item.file}}
         key={i}
       />
     )
