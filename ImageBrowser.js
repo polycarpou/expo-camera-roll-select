@@ -8,6 +8,7 @@ import {
   Dimensions,
   Button
 } from 'react-native';
+import { FileSystem } from 'expo';
 import ImageTile from './ImageTile';
 const { width } = Dimensions.get('window')
 
@@ -22,19 +23,20 @@ export default class ImageBrowser extends React.Component {
     }
   }
 
-  setIndex = (index) => {
+  selectImage = (index) => {
     let newSelected = {...this.state.selected};
     if (newSelected[index]) {
       delete newSelected[index];
     } else {
-      newSelected = {...newSelected, [index]: true}
+      newSelected[index] = true
     }
-    if (!newSelected) newSelected = {}
+    if (Object.keys(newSelected).length > this.props.max) return;
+    if (!newSelected) newSelected = {};
     this.setState({ selected: newSelected })
   }
 
   getPhotos = () => {
-    let params = { first: 50, assetType: 'All' };
+    let params = { first: 50, mimeTypes: ['image/jpeg'] };
     if (this.state.after) params.after = this.state.after
     if (!this.state.has_next_page) return
     CameraRoll
@@ -44,12 +46,12 @@ export default class ImageBrowser extends React.Component {
 
   processPhotos = (r) => {
     if (this.state.after === r.page_info.end_cursor) return;
-    let newState = {
-      photos: [...this.state.photos, ...r.edges],
+    let uris = r.edges.map(i=> i.node).map(i=> i.image).map(i=>i.uri)
+    this.setState({
+      photos: [...this.state.photos, ...uris],
       after: r.page_info.end_cursor,
       has_next_page: r.page_info.has_next_page
-    };
-    this.setState(newState)
+    });
   }
 
   getItemLayout = (data,index) => {
@@ -57,23 +59,34 @@ export default class ImageBrowser extends React.Component {
     return { length, offset: length * index, index }
   }
 
-  prepareCallback(cancelled) {
+  prepareCallback() {
     let { selected, photos } = this.state;
     let selectedPhotos = photos.filter((item, index) => {
       return(selected[index])
     });
-    if (cancelled) return(this.props.callback())
-    this.props.callback(selectedPhotos)
+    let files = selectedPhotos
+      .map(i => FileSystem.getInfoAsync(i, {md5: true}))
+    let callbackResult = Promise
+      .all(files)
+      .then(imageData=> {
+        return imageData.map((data, i) => {
+          return {file: selectedPhotos[i], ...data}
+        })
+      })
+    this.props.callback(callbackResult)
   }
 
   renderHeader = () => {
+    let selectedCount = Object.keys(this.state.selected).length;
+    let headerText = selectedCount + ' Selected';
+    if (selectedCount === this.props.max) headerText = headerText + ' (Max)';
     return (
       <View style={styles.header}>
         <Button
           title="Exit"
-          onPress={() => this.prepareCallback(true)}
+          onPress={() => this.props.callback(Promise.resolve([]))}
         />
-        <Text>{Object.keys(this.state.selected).length} Selected</Text>
+        <Text>{headerText}</Text>
         <Button
           title="Choose"
           onPress={() => this.prepareCallback()}
@@ -88,7 +101,7 @@ export default class ImageBrowser extends React.Component {
         item={item}
         index={index}
         selected={selected}
-        setIndex={this.setIndex}
+        selectImage={this.selectImage}
       />
     )
   }
