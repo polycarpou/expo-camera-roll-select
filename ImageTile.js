@@ -11,13 +11,13 @@ const { width } = Dimensions.get('window')
 
 class ImageTile extends React.PureComponent {
   render() {
-    let { item, index, selected, setIndex } = this.props;
+    let { item, index, selected, selectImage } = this.props;
     if (!item) return null;
     return (
       <TouchableHighlight
         style={{opacity: selected ? 0.5 : 1}}
         underlayColor='transparent'
-        onPress={() => setIndex(index)}
+        onPress={() => selectImage(index)}
       >
         <Image
           style={{width: width/4, height: width/4}}

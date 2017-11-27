@@ -23,19 +23,20 @@ export default class ImageBrowser extends React.Component {
     }
   }
 
-  setIndex = (index) => {
+  selectImage = (index) => {
     let newSelected = {...this.state.selected};
     if (newSelected[index]) {
       delete newSelected[index];
     } else {
-      newSelected = {...newSelected, [index]: true}
+      newSelected[index] = true
     }
-    if (!newSelected) newSelected = {}
+    if (Object.keys(newSelected).length > this.props.max) return;
+    if (!newSelected) newSelected = {};
     this.setState({ selected: newSelected })
   }
 
   getPhotos = () => {
-    let params = { first: 50, assetType: 'All' };
+    let params = { first: 50, mimeTypes: ['image/jpeg'] };
     if (this.state.after) params.after = this.state.after
     if (!this.state.has_next_page) return
     CameraRoll
@@ -76,13 +77,16 @@ export default class ImageBrowser extends React.Component {
   }
 
   renderHeader = () => {
+    let selectedCount = Object.keys(this.state.selected).length;
+    let headerText = selectedCount + ' Selected';
+    if (selectedCount === this.props.max) headerText = headerText + ' (Max)';
     return (
       <View style={styles.header}>
         <Button
           title="Exit"
           onPress={() => this.props.callback(Promise.resolve([]))}
         />
-        <Text>{Object.keys(this.state.selected).length} Selected</Text>
+        <Text>{headerText}</Text>
         <Button
           title="Choose"
           onPress={() => this.prepareCallback()}
@@ -97,7 +101,7 @@ export default class ImageBrowser extends React.Component {
         item={item}
         index={index}
         selected={selected}
-        setIndex={this.setIndex}
+        selectImage={this.selectImage}
       />
     )
   }

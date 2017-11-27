@@ -31,7 +31,7 @@ export default class App extends React.Component {
   }
   render() {
     if (this.state.imageBrowserOpen) {
-      return(<ImageBrowser callback={this.imageBrowserCallback}/>);
+      return(<ImageBrowser max={4} callback={this.imageBrowserCallback}/>);
     }
     return (
       <View style={styles.container}>
