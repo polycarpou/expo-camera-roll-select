@@ -23,6 +23,10 @@ export default class ImageBrowser extends React.Component {
     }
   }
 
+  componentDidMount() {
+    this.getPhotos()
+  }
+
   selectImage = (index) => {
     let newSelected = {...this.state.selected};
     if (newSelected[index]) {
@@ -136,7 +140,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    height: 40,
+    height: 50,
     width: width,
     justifyContent: 'space-between',
     flexDirection: 'row',
