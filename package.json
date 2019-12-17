@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "devDependencies": {
-    "jest-expo": "^32.0.0",
-    "flow-bin": "^0.45.0"
+    "flow-bin": "^0.45.0",
+    "jest-expo": "^35.0.0"
   },
   "main": "node_modules/expo/AppEntry.js",
   "scripts": {
@@ -18,8 +18,9 @@
     "preset": "jest-expo"
   },
   "dependencies": {
-    "expo": "^32.0.0",
-    "react": "16.5.0",
-    "react-native": "https://github.com/expo/react-native/archive/sdk-32.0.0.tar.gz"
+    "expo": "^35.0.0",
+    "expo-file-system": "~7.0.0",
+    "react": "16.8.3",
+    "react-native": "https://github.com/expo/react-native/archive/sdk-35.0.0.tar.gz"
   }
 }

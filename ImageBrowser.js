@@ -6,9 +6,10 @@ import {
   CameraRoll,
   FlatList,
   Dimensions,
+  Platform,
   Button
 } from 'react-native';
-import { FileSystem } from 'expo';
+import * as FileSystem from 'expo-file-system';
 import ImageTile from './ImageTile';
 const { width } = Dimensions.get('window')
 
@@ -40,8 +41,9 @@ export default class ImageBrowser extends React.Component {
   }
 
   getPhotos = () => {
-    let params = { first: 50, mimeTypes: ['image/jpeg'] };
+    let params = { first: 50, assetType: 'Photos' };
     if (this.state.after) params.after = this.state.after
+    if (Platform.OS === 'ios') params.groupTypes = 'All'
     if (!this.state.has_next_page) return
     CameraRoll
       .getPhotos(params)
